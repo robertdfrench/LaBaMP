@@ -4,11 +4,13 @@ module Labamp
     attr_reader :name
     attr_accessor :headers
     attr_accessor :structs
+    attr_accessor :functions
 
     def compile
       @c_lines = []
       @headers.each {|h| @c_lines << "#include <#{h}>"}
       @structs.each {|s| @c_lines << s.to_s}
+      @functions.each {|f| @c_lines << f.to_s + ";"}
       @c_source_code = @c_lines.join("\n")
     end
 
@@ -16,6 +18,11 @@ module Labamp
       @name = name.to_s
       @structs = []
       @headers = []
+      @functions = []
+    end
+
+    def boolean
+      Type.by_name :boolean
     end
 
     def double
@@ -32,8 +39,20 @@ module Labamp
     end
 
     def struct(name, fields_hash)
-      structs << Struct.new(name, fields_hash)
+      s = Struct.new(name, fields_hash)
+      structs << s
+      stype = Type.for_struct s
+      self.class.send(:define_method,name.to_sym) { return stype }
     end
+  end
+
+  def function(name, return_type, parameter_list, &block)
+    return_type = Type.by_name return_type
+    parameter_list.each_key do |k|
+      parameter_list[k] = Type.by_name parameter_list[k]
+    end
+    f = Function.new(name, return_type, parameter_list)
+    functions << f
   end
 
   def program(name, &program_block)
@@ -72,13 +91,15 @@ module Labamp
   class Type
     attr_reader :name
     attr_accessor :declaration_template
+    attr_accessor :associated_struct
 
     def initialize(name)
       @name = name
-      @declaration_template = "name VARNAME"
+      @declaration_template = "#{name.to_s} VARNAME"
     end
 
-    def self.by_name(name)
+    def self.by_name(type_or_name)
+      name = type_or_name.to_s
       if @@type_dictionary[name].nil?
         log "Deriving new type #{name}"
         @@type_dictionary[name] = Type.new(name)
@@ -93,10 +114,39 @@ module Labamp
       list_type
     end
 
+    def self.for_struct(struct)
+      struct_type = by_name(struct.name)
+      struct_type.associated_struct = struct
+      struct_type
+    end
+
     @@type_dictionary = {}
 
     def to_s
       name
+    end
+  end
+
+  class Function
+    attr_reader :name
+    attr_reader :return_type
+
+    def initialize(name, return_type, params_hash)
+      @name = name
+      @return_type = return_type
+      @params_hash = params_hash
+    end
+
+    def signature
+      params = @params_hash.collect do |pname, ptype|
+        ptype.declaration_template.gsub(/VARNAME/, pname.to_s)
+      end
+
+      "#{return_type.to_s} #{name}(#{params.join(", ")})"
+    end
+
+    def to_s
+      signature
     end
   end
 

@@ -11,7 +11,7 @@ program :simple_ga do
     b == true
   end
 
-  procedure :sort, none, {colony: list(organism)} do
+  procedure :sort, nil, {colony: list(organism)} do
     variable :colony_size, integer
     colony_size = colony.num_elements
     variable :swapped, boolean
