@@ -7,6 +7,7 @@ module Labamp
       @name = name
       @return_type = return_type
       @params_hash = params_hash
+      summon_params
     end
 
     def signature
@@ -19,6 +20,16 @@ module Labamp
 
     def to_s
       signature
+    end
+
+    private
+    def summon_params
+      @params_hash.each do |name, type|
+        v = Variable.new(self, name, type)
+        self.class.class_eval do
+          define_method(name) do v end
+        end
+      end
     end
   end
 end
