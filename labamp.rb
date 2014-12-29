@@ -4,17 +4,10 @@ require_relative "labamp/program.rb"
 require_relative "labamp/struct.rb"
 require_relative "labamp/type.rb"
 require_relative "labamp/variable.rb"
+require_relative "labamp/type_manager.rb"
+require_relative "labamp/type_helpers.rb"
+require_relative "labamp/type_helpers/method_definer.rb"
 module Labamp
-
-  def function(name, return_type, parameter_list, &block)
-    return_type = Type.by_name return_type
-    parameter_list.each_key do |k|
-      parameter_list[k] = Type.by_name parameter_list[k]
-    end
-    f = Function.new(name, return_type, parameter_list)
-    f.instance_eval &block
-    functions << f
-  end
 
   def program(name, &program_block)
     p = Program.new(name)
@@ -24,7 +17,7 @@ module Labamp
     puts p.c_source_code
   end
 
-  def log(msg)
+  def self.log(msg)
     puts "[LaBaMP] #{msg}"
   end
 end
