@@ -54,8 +54,18 @@ module Labamp
 
     private
     def populate_type_dictionary_with_primitives
-      derive(:double)
-      derive(:boolean)
+      double_type = derive(:double)
+      double_type.eigenmodule.make_a_method(:**) do |rhs| double_type end
+      double_type.eigenmodule.make_a_method(:*) do |rhs| double_type end
+      double_type.eigenmodule.make_a_method(:+) do |rhs| double_type end
+      double_type.eigenmodule.make_a_method(:-) do |rhs| double_type end
+      double_type.eigenmodule.make_a_method(:/) do |rhs| 
+        raise(Error::LabampTypeError, "Don't think you can walk around here dividing by zero") if rhs == 0.0
+        double_type
+      end
+
+      boolean_type = derive(:boolean)
+      boolean_type.eigenmodule.make_a_method(:==) do |rhs| boolean_type end
     end
   end
 end

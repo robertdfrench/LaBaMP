@@ -11,7 +11,8 @@ module Labamp
       @c_lines = []
       @headers.each {|h| @c_lines << "#include <#{h}>"}
       @structs.each {|s| @c_lines << s.to_s}
-      @functions.each {|f| @c_lines << f.to_s + ";"}
+      @functions.each {|f| @c_lines << f.signature + ";"}
+      @functions.each {|f| @c_lines << f.to_s}
       @c_source_code = @c_lines.join("\n")
     end
 
@@ -55,7 +56,7 @@ module Labamp
         parameter_list[k] = type_manager.by_name parameter_list[k]
       end
       f = Function.new(name, return_type, parameter_list)
-      #f.instance_eval &block
+      f.instance_eval &block
       functions << f
     end
 

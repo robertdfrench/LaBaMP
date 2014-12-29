@@ -2,11 +2,13 @@ module Labamp
   class Function
     attr_reader :name
     attr_reader :return_type
+    attr_reader :expressions
 
     def initialize(name, return_type, params_hash)
       @name = name
       @return_type = return_type
       @params_hash = params_hash
+      @expressions = []
       summon_params
     end
 
@@ -19,7 +21,13 @@ module Labamp
     end
 
     def to_s
-      signature
+      parts = []
+      parts << signature + "{"
+      expressions.each do |expr|
+        parts << expr.to_s + ";"
+      end
+      parts << "}"
+      parts.join("\n")
     end
 
     private
